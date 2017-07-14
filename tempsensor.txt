@@ -1,24 +1,47 @@
+#include <Wire.h>
+#include <Adafruit_BMP085.h>
 #include <LiquidCrystal.h>
-
-LiquidCrystal lcd(12, 11, 5, 4, 3, 2);  
-
-void setup() {
-  Serial.begin(9600);
-  lcd.begin(16, 2); //initialize rows in lcd screen
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2); 
+ 
+// Connect VCC of the BMP180 sensor to 3.3V
+// Connect GND to Ground
+// Connect SCL to i2c clock  thats A5
+// Connect SDA to i2c data  thats A4
+char PRESSURESHOW[4]; //initalizing a character of size 4 for showing the result
+char TEMPERATURESHOW[4]; //initializing a character of size 4 showing the temperature result
+ 
+Adafruit_BMP085 bmp;
+ 
+void setup() 
+{
+  lcd.begin(16,2); 
+  //print a logo message to LCD
+  lcd.print(" ");
+  lcd.setCursor(0,1);
+  delay (2500);
+  lcd.clear(); //clear display
   
+  Serial.begin(9600);
+  if (!bmp.begin()) 
+  {
+    Serial.println("BMP180 sensor not found");
+    while (1) {}
+  }
 }
-
-void loop() {
-  int sensorValue = analogRead(A0);
-  float volt = (sensorValue/1020.0) * 4.9; //Volts
-  float tempC = (volt -0.5) * 100; //Celcius
-  float tempF = (tempC * 9.0 / 5.0) + 32.0; // Fahrenheit
-  Serial.println(tempF);
-  lcd.setCursor(0, 0);
-  lcd.print("Room temp: ");
-  lcd.setCursor(0, 1);
-  lcd.print(tempF);
-  lcd.print(" Fahrenheit");
-  delay(3000);
+ 
+void loop() 
+{              
+   lcd.print("Pressure= "); // print name
+   String PRESSUREVALUE = String(bmp.readPressure()); // convert the reading to a char array
+   PRESSUREVALUE.toCharArray(PRESSURESHOW, 4);
+   lcd.print(PRESSURESHOW);
+   lcd.print("hPa   ");
+   lcd.setCursor(0, 1); // set the cursor to column 0, line 1
+   lcd.print("Temp.= "); // print name
+   String TEMPERATUREVALUE = String(bmp.readTemperature()); // convert the reading to a char array
+   TEMPERATUREVALUE.toCharArray(TEMPERATURESHOW, 4);
+   lcd.print(TEMPERATURESHOW);
+   lcd.print("C   ");
+   lcd.setCursor(0, 0); // set the cursor to column 0, line1
+   delay(1000);
 }
-
